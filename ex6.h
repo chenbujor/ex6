@@ -61,6 +61,16 @@ typedef struct OwnerNode
 
 // Global head pointer for the linked list of owners
 OwnerNode *ownerHead = NULL;
+//QueueNode structure
+typedef struct QueueNode {
+    PokemonNode *data;  // Pointer to a PokemonNode, which stores the data of each node in the queue.
+    struct QueueNode *next;  // Pointer to the next node in the queue (creates a linked list structure).
+} QueueNode;
+//Queue structure
+typedef struct Queue{
+ QueueNode *front; // Pointer to the front node of the queue (the first element in the queue).
+ QueueNode *rear; // Pointer to the rear node of the queue (the last element in the queue).
+} Queue;
 
 /* ------------------------------------------------------------
    1) Safe Input + Utility
@@ -82,11 +92,29 @@ void trimWhitespace(char *str);
 char *myStrdup(const char *src);
 
 /**
+ * @brief Checks if a pokemon with a user given ID is already owned by the given Owner
+ * @param the root of the binary tree that holds the pokemon we wish to compare to
+ * @param ID the pokemon ID that we wish to check if it already owned
+ * @return true or false values in the form of int
+ * Why we made it: We are not allowed to own the same pokemon twice, therefore we must check if one already exists before adding another one
+ */
+int checkDuplicateID(PokemonNode *pokemonRoot, int ID);
+
+/**
+ * @brief Check if a given name is already taken by another Owner
+ * @param name String that has a user written name with the intention of making it into a new owner
+ * @return true or false values in the form of int
+ * Why we made it: We wish to make sure names are not taken while adding new ones to the list
+ */
+int checkDuplicateNames(char *name);
+
+/**
  * @brief Read an integer safely, re-prompt if invalid.
  * @param prompt text to display
  * @return valid integer from user
  * Why we made it: We want robust menu/ID input handling.
  */
+
 int readIntSafe(const char *prompt);
 
 /**
@@ -330,7 +358,12 @@ void pokemonFight(OwnerNode *owner);
  * Why we made it: Demonstrates removing an old ID, inserting the next ID.
  */
 void evolvePokemon(OwnerNode *owner);
-
+/**
+* @brief receives a Queue and sorts it in an alphabetical order
+* @param queue point to the queue
+* Why we made it: I have created a queue and needed to alphabetically sort it
+*/
+void sortPokemonNodesAlphabetically(Queue *queue);
 /**
  * @brief Prompt for an ID, BFS-check duplicates, then insert into BST.
  * @param owner pointer to the Owner
@@ -408,7 +441,7 @@ OwnerNode *findOwnerByName(const char *name);
  * @brief Let user pick an existing Pokedex (owner) by number, then sub-menu.
  * Why we made it: This is the main interface for adding/fighting/evolving, etc.
  */
-void enterExistingPokedexMenu(void);
+void enterExistingPokedexMenu();
 
 /**
  * @brief Creates a new Pokedex (prompt for name, check uniqueness, choose starter).
