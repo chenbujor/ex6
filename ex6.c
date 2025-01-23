@@ -6,7 +6,11 @@
 #include <string.h>
 
 # define INT_BUFFER 128
-
+/*******************
+ *Name: Chen Bujor
+ *ID: 322996976
+ * Assignment: Ex6
+ ******************/
 // ================================================
 // Basic struct definitions from ex6.h assumed:
 //   PokemonData { int id; char *name; PokemonType TYPE; int hp; int attack; EvolutionStatus CAN_EVOLVE; }
@@ -77,7 +81,6 @@ int readIntSafe(const char *prompt)
             clearerr(stdin);
             continue;
         }
-
         // 1) Strip any trailing \r or \n
         //    so "123\r\n" becomes "123"
         size_t len = strlen(buffer);
@@ -85,7 +88,6 @@ int readIntSafe(const char *prompt)
             buffer[--len] = '\0';
         if (len > 0 && (buffer[len - 1] == '\r' || buffer[len - 1] == '\n'))
             buffer[--len] = '\0';
-
         // 2) Check if empty after stripping
         if (len == 0)
         {
@@ -319,56 +321,95 @@ PokemonNode *insertPokemonNode(PokemonNode *root, PokemonNode *newNode)
     }
     return root;
 }
+int compareByNameNode(const void *a, const void *b) {
+    PokemonNode *nodeA = *(PokemonNode **)a;
+    PokemonNode *nodeB = *(PokemonNode **)b;
+    // Compare the names alphabetically
+    return strcmp(nodeA->data->name, nodeB->data->name);
+}
 PokemonNode *removeNodeBST(PokemonNode *root, int id)
 {
-    if (root == NULL)
-    {
-        printf("No Pokemon to release.\n");
+    if (root==NULL)
         return root;
-    }
+    if(id < root->data->id)
+        root->left = removeNodeBST(root->left, id);
+    else if(id > root->data->id)
+        root->right = removeNodeBST(root->right, id);
+    else
+    {
+        if(root->left == NULL)
+        {
+            PokemonNode *temp = root->right;
+            freePokemonNode(root);
+            return temp;
+        }
+        else if(root->right == NULL)
+        {
+            PokemonNode *temp = root->left;
+            freePokemonNode(root);
+            return temp;
+        }
+        PokemonNode *successor = root->right;
+        while (successor->left != NULL)
+            successor = successor->left;
+        root->data->id = successor->data->id;
+        free(root->data->name);
+        root->data->name = myStrdup(successor->data->name);
+        root->data->hp = successor->data->hp;
+        root->data->attack = successor->data->attack;
+        root->data->TYPE = successor->data->TYPE;
+        root->data->CAN_EVOLVE = successor->data->CAN_EVOLVE;
 
-    PokemonNode *remove = searchPokemonBFS(root, id);
-    if (remove == NULL)
-    {
-        printf("No Pokemon to release.\n");
-        return root;
-    }
-    if (remove->left == NULL && remove->right == NULL)
-    {
-        freePokemonNode(root);
-        remove = NULL;
-        return root;
-    }
-    else
-        if (remove->left == NULL)
-        {
-            PokemonNode *temp = remove;
-            remove = remove->right;
-            freePokemonNode(temp);
-            return root;
+        root->right = removeNodeBST(successor->right, successor->right->data->id);
         }
-    else
-        if(remove->right == NULL)
-        {
-            PokemonNode *temp = remove;
-            remove = remove->left;
-            freePokemonNode(temp);
-            return root;
-        }
-    PokemonNode* successor = findMax(root->left);
-    PokemonNode* temp = root->left;
-    while (temp->right != successor)
+    return root;
+}
+void pokemonFight(OwnerNode *owner)
+{
+    if (!owner)
+        return;
+    if (!owner->pokedexRoot)
     {
-        temp = temp->right;
+        printf("Pokedex is empty.\n");
+        return;
     }
+    int first = readIntSafe("Enter ID of the first Pokemon: ");
+    int second = readIntSafe("Enter ID of the second Pokemon: ");
+    PokemonNode *fighterOne = searchPokemonBFS(owner->pokedexRoot, first);
+    PokemonNode *fighterTwo = searchPokemonBFS(owner->pokedexRoot, second);
+    if (!fighterOne || !fighterTwo)
+    {
+        printf("One or both Pokemon IDs not found.\n");
+        return;
+    }
+    float PowerOne = (fighterOne->data->attack * 1.5) + (fighterOne->data->hp * 1.2);
+    float PowerTwo = (fighterTwo->data->attack * 1.5) + (fighterTwo->data->hp * 1.2);
+    printf("Pokemon 1: %s (Score = %.2f)\n", fighterOne->data->name, PowerOne);
+    printf("Pokemon 2: %s (Score = %.2f)\n", fighterTwo->data->name, PowerTwo);
+    float result = PowerOne - PowerTwo;
+    if (result == 0)
+        printf("It's a tie!\n");
+    if(result > 0)
+        printf("%s wins!", fighterOne->data->name);
+    if(result < 0)
+        printf("%s wins!", fighterTwo->data->name);
 }
 void freePokemonNode(PokemonNode *node)
 {
     if (!node)
         return;
-    free(node->data->name);
-    free(node->data);
+    if(node->data)
+    {
+        if (node->data->name)
+        {
+            free(node->data->name);
+            node->data->name = NULL;
+        }
+        free(node->data);
+        node->data = NULL;
+    }
     free(node);
+    node = NULL;
 }
 void freePokemonTree(PokemonNode *root);
 void freeOwnerNode(OwnerNode *owner);
@@ -473,12 +514,15 @@ void freePokemon(OwnerNode *owner)
     if (!owner)
         return;
     if(!owner->pokedexRoot)
+    {
         printf("No Pokemon to release.\n");
+        return;
+    }
     printf("Enter Pokemon ID to release: ");
     int ID;
     scanf("%d", &ID);
     printf("\n");
-
+    owner->pokedexRoot = removeNodeBST(owner->pokedexRoot, ID);
 }
 //
 // --------------------------------------------------------------
@@ -581,12 +625,12 @@ void enterExistingPokedexMenu()
         case 2:
             displayMenu(cur);
             break;
-        // case 3:
-        //     freePokemon(cur);
-        //     break;
-        // case 4:
-        //     pokemonFight(cur);
-        //     break;
+        case 3:
+            freePokemon(cur);
+            break;
+        case 4:
+            pokemonFight(cur);
+            break;
         // case 5:
         //     evolvePokemon(cur);
         //     break;
