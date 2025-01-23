@@ -203,7 +203,7 @@ PokemonNode *searchPokemonBFS(PokemonNode *root, int id);
  * @return updated BST root
  * Why we made it: We handle special cases of a BST remove (0,1,2 children).
  */
-PokemonNode *removeNodeBST(PokemonNode *root, int id);
+PokemonNode *removeNodeBST(PokemonNode **root, int id);
 
 /**
  * @brief Combine BFS search + BST removal to remove Pokemon by ID.
@@ -297,6 +297,14 @@ void addNode(NodeArray *na, PokemonNode *node);
  */
 void collectAll(PokemonNode *root, NodeArray *na);
 
+
+/**
+ * @brief collect all nodes from the BST into a queue.
+ * @param root BST root
+ * @param queue pointer to the queue we wish to fix
+ * Why we made it: We gather everything for sorting and deleting.
+ */
+void collectAllNodes(PokemonNode *root, Queue *queue);
 /**
  * @brief Compare function for qsort (alphabetical by node->data->name).
  * @param a pointer to a pointer to PokemonNode
@@ -470,7 +478,11 @@ void mergePokedexMenu(void);
  * Why we made it: Demonstrates stepping through a circular list in a chosen direction.
  */
 void printOwnersCircular(void);
-
+/**
+*@brief prints the list of Owners in order starting from the head Owner
+* Why we made it: ease of use, printing the list in various functions
+*/
+void printOwners(void);
 /* ------------------------------------------------------------
    12) Cleanup All Owners at Program End
    ------------------------------------------------------------ */
