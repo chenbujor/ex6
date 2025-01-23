@@ -327,16 +327,67 @@ int compareByNameNode(const void *a, const void *b) {
     // Compare the names alphabetically
     return strcmp(nodeA->data->name, nodeB->data->name);
 }
+void removeNodeRecursion(PokemonNode *root, int id)
+{
+    if (root==NULL)
+        return;
+    if(id < root->data->id)
+    {
+        return removeNodeRecursion(root->left, id);
+    }
+    else if(id > root->data->id)
+    {
+        return removeNodeRecursion(root->right, id);
+    }
+    else //If ID = root's ID
+    {
+        if (root->left == NULL && root->right == NULL)
+        {
+            freePokemonNode(root);
+            return;
+        }
+        if(root->left == NULL)
+        {
+            PokemonNode *temp = root->right;
+            freePokemonNode(root);
+            return;
+        }
+        else if(root->right == NULL)
+        {
+            PokemonNode *temp = root->left;
+            freePokemonNode(root);
+            return;
+        }
+        PokemonNode *successor = root->right;
+        while (successor->left != NULL)
+            successor = successor->left;
+        PokemonNode *temp = root;
+        successor = temp;
+        successor->right = temp->right;
+        successor->left = temp->left;
+        freePokemonNode(root);
+    }
+    return;
+}
 PokemonNode *removeNodeBST(PokemonNode *root, int id)
 {
     if (root==NULL)
         return root;
     if(id < root->data->id)
-        root->left = removeNodeBST(root->left, id);
-    else if(id > root->data->id)
-        root->right = removeNodeBST(root->right, id);
-    else
     {
+        return removeNodeBST(root->left, id);
+    }
+    else if(id > root->data->id)
+    {
+        return removeNodeBST(root->right, id);
+    }
+    else //If ID = root's ID
+    {
+        if (root->left == NULL && root->right == NULL)
+        {
+            freePokemonNode(root);
+            return NULL;
+        }
         if(root->left == NULL)
         {
             PokemonNode *temp = root->right;
@@ -352,15 +403,12 @@ PokemonNode *removeNodeBST(PokemonNode *root, int id)
         PokemonNode *successor = root->right;
         while (successor->left != NULL)
             successor = successor->left;
-        root->data->id = successor->data->id;
-        free(root->data->name);
-        root->data->name = myStrdup(successor->data->name);
-        root->data->hp = successor->data->hp;
-        root->data->attack = successor->data->attack;
-        root->data->TYPE = successor->data->TYPE;
-        root->data->CAN_EVOLVE = successor->data->CAN_EVOLVE;
-
-        root->right = removeNodeBST(successor->right, successor->right->data->id);
+        PokemonNode *temp = root;
+        root = successor;
+        successor = temp;
+        successor->right = temp->right;
+        successor->left = temp->left;
+        freePokemonNode(root);
         }
     return root;
 }
@@ -522,7 +570,7 @@ void freePokemon(OwnerNode *owner)
     int ID;
     scanf("%d", &ID);
     printf("\n");
-    owner->pokedexRoot = removeNodeBST(owner->pokedexRoot, ID);
+    removeNodeBST(owner->pokedexRoot, ID);
 }
 //
 // --------------------------------------------------------------
